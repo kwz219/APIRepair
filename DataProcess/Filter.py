@@ -1,5 +1,7 @@
 import os
 from DataProcess.IOHelper import write_lines
+
+#过滤出所有Java文件
 def filter_files(APIname,RootDir):
     count=0
     filenames=[]
@@ -21,6 +23,21 @@ def filter_files(APIname,RootDir):
     print(count)
     return filenames
 
+def hit(keywords,str):
+    for word in keywords:
+        if word in str:
+            return True
+    return False
+"""
+从github event事件列表中筛选出合适的事件
+"""
+def filter_events(event_list,filter_types,filter_keywords):
+
+    filted_events=[]
+    for event in event_list:
+        if event['type'] in filter_types and hit(filter_keywords,event['description'])
+            filted_events.append(event)
+    return filted_events
 
 if __name__ =="__main__":
     path="D:\浏览器下载\java_projects"
