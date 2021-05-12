@@ -35,7 +35,7 @@ def filter_events(event_list,filter_types,filter_keywords):
 
     filted_events=[]
     for event in event_list:
-        if event['type'] in filter_types and hit(filter_keywords,event['description'])
+        if event['type'] in filter_types and hit(filter_keywords,event['description']):
             filted_events.append(event)
     return filted_events
 
