@@ -33,4 +33,3 @@ def download_events(year):
                 wget.download(url, 'W:\PycharmProjects\APIRepair\Data\Raw\\'+str(year)+"-"+day+"-"+hour+".json")
                 print(str(year)+"-"+day+"-"+hour+"finished")
     print(months_normal)
-download_events(2017)
