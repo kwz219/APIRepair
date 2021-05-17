@@ -50,11 +50,9 @@ def download_events(year,min_month,min_day,min_hour):
                     url = "https://data.gharchive.org/" + str(year) + "-" + month + "-" + day + "-" + hour + ".json.gz"
                     #print(url)
                     r = session.get(url=url, headers=headers)
-                    with open("E:\API\Data\Raw\githubEvents\\"+str(year)+"\\"+str(year) + "-" + month + "-" + day + "-" + hour + ".json.gz", "wb") as f:
+                    with open("E:\API\Data\Raw\githubEvents"+str(year)+"\\"+str(year) + "-" + month + "-" + day + "-" + hour + ".json.gz", "wb") as f:
                         f.write(r.content)
                         f.flush()
                     print(str(year) + "-" + month + "-" + day + "-" + hour + "  Finished")
 
-
-download_events(2017,0,23,21)
-download_events(2018,0,23,21)
+download_events(2018,11,28,16)
