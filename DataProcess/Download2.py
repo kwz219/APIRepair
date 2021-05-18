@@ -1,6 +1,11 @@
 # coding=utf-8
-import requests
+from urllib import request
+import ssl
+import json
 from requests import Session
+import time
+import wget
+from DataProcess.Filter import filter
 def IsLeap(year):
     if (year%4==0 and year%100!=0) or (year%400==0):
         return True
@@ -54,5 +59,30 @@ def download_events(year,min_month,min_day,min_hour):
                         f.write(r.content)
                         f.flush()
                     print(str(year) + "-" + month + "-" + day + "-" + hour + "  Finished")
+def download_eventurl_content(jsonfile,least_id):
+    print("Filtering")
+    events = filter(jsonfile)
+    print("Filter finished")
+    print("total",len(events))
+    token="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"
+    i=1
+    for ev in events:
+        id=ev["id"]
+        json_url=ev["payload"]["commits"][0]["url"]
+        if int(id)<least_id:
+            i=i+1
+            continue
+        try:
+            html = request.urlopen(json_url+"?access_token="+token)
+            hjson = json.loads(html.read())
+            with open("E:\API\Data\Filted\\2016\\"+jsonfile[24:-5]+"-"+str(id)+".json",'w',encoding="utf8")as f:
+                json.dump(hjson,f)
+                f.close()
+            print(i,id,"finished")
+        except Exception:
+            pass
+        i=i+1
 
-download_events(2018,11,28,16)
+
+
+download_eventurl_content("E:\API\Data\Raw\\raw2016\\2016-01-01-0.json",3486707015)

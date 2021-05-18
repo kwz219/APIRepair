@@ -1,6 +1,6 @@
 import os
 from DataProcess.IOHelper import write_lines
-
+import json
 #过滤出所有Java文件
 def filter_files(APIname,RootDir):
     count=0
@@ -31,15 +31,31 @@ def hit(keywords,str):
 """
 从github event事件列表中筛选出合适的事件
 """
-def filter_events(event_list,filter_types,filter_keywords):
+def filter_events(json_path,filter_types,filter_keywords):
+    events=[]
+    with open(json_path,'r',encoding="utf8")as f:
+        for line in f:
+            event=json.loads(line.strip())
+            events.append(event)
+        f.close()
 
     filted_events=[]
-    for event in event_list:
-        if event['type'] in filter_types and hit(filter_keywords,event['description']):
-            filted_events.append(event)
+    for event in events:
+        if event['type'] in filter_types and len(event["payload"]["commits"])>0:
+            if hit(filter_keywords,event["payload"]["commits"][0]["message"]):
+                filted_events.append(event)
     return filted_events
 
+def filter(json_path):
+    filter_types=["PushEvent"]
+    filter_keywords=["fix","Fix","FIX","Bug","bug","BUG","solution","Solution","problem","Problem","Correct","correct","debug","Debug"]
+    return filter_events(json_path,filter_types,filter_keywords)
 if __name__ =="__main__":
+    """
     path="D:\浏览器下载\java_projects"
     filelist=filter_files("android",path)
     write_lines("API_FileList",filelist)
+    """
+    events=filter("D:\浏览器下载\\2015-01-01-15.json")
+    for ev in events:
+        print(ev["payload"]["commits"][0]["message"])
