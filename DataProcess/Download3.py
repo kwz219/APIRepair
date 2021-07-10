@@ -59,7 +59,7 @@ def download_events(year,min_month,min_day,min_hour):
                         f.write(r.content)
                         f.flush()
                     print(str(year) + "-" + month + "-" + day + "-" + hour + "  Finished")
-def download_eventurl_contents(filedir,year,min_month,min_day,min_hour,min_id):
+def download_eventurl_contents(filedir,year,min_month,min_day,min_hour):
     hours = [str(i) for i in range(24)]
     tenstr = ["01", "02", "03", "04", "05", "06", "07", "08", "09"]
     months_normal = {"1": tenstr + [str(i) for i in range(10, 32)], "2": tenstr + [str(i) for i in range(10, 29)],
@@ -92,7 +92,7 @@ def download_eventurl_contents(filedir,year,min_month,min_day,min_hour,min_id):
             for hour in hours:
                 if (i > min_month) or (i == min_month and int(day)>min_day) or (i == min_month and int(day)==min_day and int(hour)>min_hour):
                     url = filedir+"\\" + str(year) + "-" + month + "-" + day + "-" + hour + ".json"
-                    download_eventurl_content(url,min_id)
+                    download_eventurl_content(url,3653997223)
                     print("--------------------------------------------------------------")
                     print(str(year) + "-" + month + "-" + day + "-" + hour + "  Finished")
                     print("--------------------------------------------------------------")
@@ -101,7 +101,7 @@ def download_eventurl_contents(filedir,year,min_month,min_day,min_hour,min_id):
 def download_eventurl_content(jsonfile,least_id):
     session = Session()
     headers = {'User-Agent': 'Mozilla/5.0',
-               'Authorization': 'token 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',
+               'Authorization': 'token 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',
                'Content-Type': 'application/json',
                'Accept': 'application/json'
                }
@@ -133,13 +133,11 @@ def download_eventurl_content(jsonfile,least_id):
         i=i+1
 
 if __name__ =="__main__":
-    """
     parser=argparse.ArgumentParser()
     parser.add_argument('--github_token',default='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',type=str,help="your github token")
     parser.add_argument('--file_dir',  type=str,help="存放原始json文件的文件夹位置")
     parser.add_argument('--download_dir',type=str,help="从json中提取出的链接下载内容")
     args=parser.parse_args()
-    """
-    download_eventurl_contents("E:\API\Data\Raw\\raw2016",2016,1,21,10,3566309312)
+    download_eventurl_contents("E:\API\Data\Raw\\raw2016",2016,2,12,12)
 
 
