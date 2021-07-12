@@ -1,5 +1,6 @@
 """Encoder的基类"""
 import torch.nn as nn
+import torch
 from Models.Util.misc import aeq
 from Models.Util.Pos_ffn import PositionwiseFeedForward
 from Models.Util.Pos_ffn import ActivationFunction
@@ -34,6 +35,7 @@ class EncoderBase(nn.Module):
     def _check_args(self, src, lengths=None, hidden=None):
         n_batch = src.size(1)
         if lengths is not None:
+            #modify
             n_batch_, = lengths.size()
             aeq(n_batch, n_batch_)
 
@@ -140,6 +142,9 @@ class TransformerEncoder(EncoderBase):
                 pos_ffn_activation_fn=pos_ffn_activation_fn)
              for i in range(num_layers)])
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
+        # layers to classify
+        self.linear = nn.Linear(d_model, 2)
+        self.softmax = nn.Softmax(dim=-1)
 
     @classmethod
     def from_opt(cls, opt, embeddings):
@@ -154,11 +159,12 @@ class TransformerEncoder(EncoderBase):
             is list else opt.attention_dropout,
             embeddings,
             opt.max_relative_positions,
-            pos_ffn_activation_fn=opt.pos_ffn_activation_fn,
+            pos_ffn_activation_fn=ActivationFunction.relu,
         )
 
     def forward(self, src, lengths=None):
         """See :func:`EncoderBase.forward()`"""
+        src=src.transpose(0,1)
         self._check_args(src, lengths)
 
         emb = self.embeddings(src)
@@ -169,8 +175,9 @@ class TransformerEncoder(EncoderBase):
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out)
-
-        return emb, out.transpose(0, 1).contiguous(), lengths
+        out, _ = torch.max(out, dim=1)
+        out=self.softmax(self.linear(out))
+        return emb, out, lengths
 
     def update_dropout(self, dropout, attention_dropout):
         self.embeddings.update_dropout(dropout)

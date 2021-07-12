@@ -44,6 +44,7 @@ def relative_matmul(x, z, transpose):
 def sequence_mask(lengths, max_len=None):
     """
     Creates a boolean mask from sequence lengths.
+    目的是消除pad对attention计算的影响
     """
     batch_size = lengths.numel()
     max_len = max_len or lengths.max()

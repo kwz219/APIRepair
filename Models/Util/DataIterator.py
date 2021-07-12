@@ -39,6 +39,7 @@ def convert_examples_to_features(examples: List[InputExample],
     pad_token_id = tokenizer.pad_token_id
 
     features = []
+    src_lengths=[]
     for i, example in enumerate(examples):
         tokens = tokenizer.tokenize(example.text)
         tokens = tokens[:max_seq_len]
@@ -50,8 +51,9 @@ def convert_examples_to_features(examples: List[InputExample],
 
         feature = InputFeatures(input_ids, label_id)
         features.append(feature)
+        src_lengths.append(len(input_ids))
 
-    return features
+    return features,src_lengths
 
 
 def create_examples(args,
@@ -71,11 +73,13 @@ def create_examples(args,
     label_dict = {label: i for i, label in enumerate(labels)}
     # print('[{}]\tLabel dictionary:\t{}'.format(mode, label_dict))
 
-    features = convert_examples_to_features(examples, label_dict, tokenizer, args.max_seq_len)
+    features,src_lengths = convert_examples_to_features(examples, label_dict, tokenizer, args.max_seq_len)
 
+    #获得src长度
+    all_input_lengths=torch.tensor([length for length in src_lengths], dtype=torch.long)
     all_input_ids = torch.tensor([feature.input_ids for feature in features], dtype=torch.long)
     all_label_ids = torch.tensor([feature.label_id for feature in features], dtype=torch.long)
 
-    dataset = TensorDataset(all_input_ids, all_label_ids)
+    dataset = TensorDataset(all_input_ids, all_label_ids,all_input_lengths)
 
     return dataset

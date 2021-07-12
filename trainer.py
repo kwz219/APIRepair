@@ -26,12 +26,13 @@ class Trainer(object):
 
         self.model.train()
         for i, batch in enumerate(self.train_loader):
-            inputs, labels = map(lambda x: x.to(self.device), batch)
+
+            inputs, labels ,src_lengths= map(lambda x: x.to(self.device), batch)
             # |inputs| : (batch_size, seq_len), |labels| : (batch_size)
 
-            outputs, attention_weights,lengthes = self.model(inputs)
+            emb, outputs,lengths = self.model(inputs,src_lengths)
             # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
-
+            #print(outputs.shape)
             loss = self.criterion(outputs, labels)
             losses += loss.item()
             acc = (outputs.argmax(dim=-1) == labels).sum()
@@ -56,10 +57,11 @@ class Trainer(object):
         self.model.eval()
         with torch.no_grad():
             for i, batch in enumerate(self.test_loader):
-                inputs, labels = map(lambda x: x.to(self.device), batch)
+                inputs, labels,src_lengths = map(lambda x: x.to(self.device), batch)
                 # |inputs| : (batch_size, seq_len), |labels| : (batch_size)
 
-                outputs, attention_weights,lengthes = self.model(inputs)
+                emb, outputs,lengthes = self.model(inputs,src_lengths)
+                #print(outputs.shape)
                 # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
 
                 loss = self.criterion(outputs, labels)

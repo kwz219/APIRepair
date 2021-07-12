@@ -21,6 +21,7 @@ class Elementwise(nn.ModuleList):
         super(Elementwise, self).__init__(*args)
 
     def forward(self, inputs):
+        print(inputs.shape)
         inputs_ = [feat.squeeze(2) for feat in inputs.split(1, dim=2)]
         assert len(self) == len(inputs_)
         outputs = [f(x) for f, x in zip(self, inputs_)]
@@ -151,6 +152,7 @@ class Embeddings(nn.Module):
         else:
             feat_dims = [int(vocab ** feat_vec_exponent)
                          for vocab in feat_vocab_sizes]
+
         vocab_sizes.extend(feat_vocab_sizes)
         emb_dims.extend(feat_dims)
         pad_indices.extend(feat_padding_idx)
@@ -160,14 +162,19 @@ class Embeddings(nn.Module):
         emb_params = zip(vocab_sizes, emb_dims, pad_indices)
         embeddings = [nn.Embedding(vocab, dim, padding_idx=pad, sparse=sparse)
                       for vocab, dim, pad in emb_params]
-        emb_luts = Elementwise(feat_merge, embeddings)
+
+        #emb_luts = Elementwise(feat_merge, embeddings)
+        emb_luts=embeddings[0]
 
         # The final output size of word + feature vectors. This can vary
         # from the word vector size if and only if features are defined.
         # This is the attribute you should access if you need to know
         # how big your embeddings are going to be.
-        self.embedding_size = (sum(emb_dims) if feat_merge == 'concat'
-                               else word_vec_size)
+
+        "源代码"
+        #self.embedding_size = (sum(emb_dims) if feat_merge == 'concat'
+        #                       else word_vec_size)
+        self.embedding_size=word_vec_size
 
         # The sequence of operations that converts the input sequence
         # into a sequence of embeddings. At minimum this consists of

@@ -1,5 +1,8 @@
 import argparse
 from collections import Counter, OrderedDict
+
+from prenlp.tokenizer import SentencePiece
+
 from Models.Util.Tokenizer import Defaulttokenizer
 
 TOKENIZER = {'default': Defaulttokenizer()}
@@ -57,14 +60,22 @@ class Vocab:
 
 def build(args):
     if args.tokenizer == 'sentencepiece':
-        pass
+        tokenizer = SentencePiece.train(input = args.corpus, model_prefix = args.prefix,
+                                        vocab_size = args.vocab_size,
+                                        model_type = args.model_type,
+                                        character_coverage = args.character_coverage,
+                                        max_sentence_length = args.max_sentence_length,
+                                        pad_token = args.pad_token,
+                                        unk_token = args.unk_token,
+                                        bos_token = args.bos_token,
+                                        eos_token = args.eos_token)
     else:
         tokenizer = TOKENIZER[args.tokenizer]
-        vocab = Vocab(vocab_size=args.vocab_size,
-                      pad_token=args.pad_token,
-                      unk_token=args.unk_token,
-                      bos_token=args.bos_token,
-                      eos_token=args.eos_token)
+        vocab = Vocab(vocab_size = args.vocab_size,
+                      pad_token = args.pad_token,
+                      unk_token = args.unk_token,
+                      bos_token = args.bos_token,
+                      eos_token = args.eos_token)
         vocab.build(args.corpus, tokenizer, args.max_sentence_length)
         vocab.save(args.prefix)
 
