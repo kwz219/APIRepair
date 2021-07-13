@@ -1,10 +1,46 @@
 import pymongo
-myclient = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+from bson.objectid import ObjectId
+myclient = pymongo.MongoClient("mongodb://172.29.7.221:27017/")
 mydb = myclient["APISeq"]
 apiCol=mydb["jdk_api"]
 methodCol=mydb['method_info']
 projectCol=mydb['project_info']
-def read_apiseq():
+def read_seq(apidictpath,idfile,seqfile):
+    apidict=load_dict(apidictpath)
+    print("apidict loaded")
+    objidlist=[]
+    apiseqlist=[]
+    ind=0
+    for me in methodCol.find():
+        objid=str(me.get("_id"))
+        refapiseq=me.get('apiSeq')
+        if len(refapiseq)>2:
+            apiseq = [apidict[str(api.id)] for api in refapiseq]
+            objidlist.append(objid)
+            apiseqlist.append(apiseq)
+            print(ind,objid,apiseq)
+            ind+=1
+    with open(idfile,'w',encoding='utf8')as f:
+        for l in objidlist:
+            f.write(l+'\n')
+        f.close()
+    with open(seqfile,'w',encoding='utf8')as f:
+        for l in apiseqlist:
+            f.write(','.join(l)+'\n')
+        f.close()
+def write_objidjdk():
+    jdkdict={}
+    ind=0
+    for jdk in apiCol.find():
+        objid=jdk.get('_id')
+        sig=jdk.get('signature')
+        jdkdict[str(objid)]=sig
+        ind+=1
+        print(ind)
+    with open("W:\PycharmProjects\APIRepair\Data\objid_api.dict",'w',encoding='utf8')as f:
+        f.write(str(jdkdict))
+        f.close()
+def read_apiseq(idfile,seqfile):
     apidict={}
     results=methodCol.aggregate(
         [
@@ -27,7 +63,6 @@ def read_apiseq():
                       "task_docs._class":0,
                       'task_docs.inParams':0,
                       'task_docs.outParams':0,
-                      '_id':0,
                       'commithash':0,
                       'status':0,
                       'project_info':0,
@@ -41,16 +76,26 @@ def read_apiseq():
 
         ]
     )
+    idlist=[]
+    apiseqlist=[]
+    ind=0
     for re in results:
-        seq=re["task_docs"]
-        methodname=re["methodName"]
-        filepath=re["filepath"]
-        for api in seq:
-            api=str(api['signature'])
-            if api not in apidict.keys():
-                apidict[str(api)]=len(apidict)+1
-                print(len(apidict),str(api)+"  added")
-    write_dict(apidict,"apivocab.txt")
+        seq=SimplifySeq(re["task_docs"])
+        objid=re["_id"]
+        idlist.append(str(objid))
+        apiseqlist.append(" ".join(seq))
+        print(ind,apiseqlist[-1])
+        ind+=1
+    with open(idfile,'w',encoding='utf8')as idf:
+        for line in idlist:
+            idf.write(line+'\n')
+        idf.close()
+    with open(seqfile,'w',encoding='utf8')as sf:
+        for line in apiseqlist:
+            sf.write(line+'\n')
+        sf.close()
+
+
 
 def write_dict(dict,save_path):
     with open(save_path,'w',encoding='utf8') as f:
@@ -167,4 +212,6 @@ def getInOutparam(code):
     return(outtype+r"\\"+"("+intype+")")
 if __name__ =="__main__":
     #filter_FixPair()
-    generate_FixPair()
+    #generate_FixPair()
+    #read_apiseq("W:\PycharmProjects\APIRepair\Data\objid.txt","W:\PycharmProjects\APIRepair\Data\\apiseq.txt")
+    read_seq("W:\PycharmProjects\APIRepair\Data\objid_api.dict","D:\huawei项目\SeqData\objid.txt","D:\huawei项目\SeqData\\apiseq.txt")
