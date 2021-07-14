@@ -1,33 +1,45 @@
 import pymongo
 from bson.objectid import ObjectId
-myclient = pymongo.MongoClient("mongodb://172.29.7.221:27017/")
+myclient = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
 mydb = myclient["APISeq"]
 apiCol=mydb["jdk_api"]
 methodCol=mydb['method_info']
 projectCol=mydb['project_info']
-def read_seq(apidictpath,idfile,seqfile):
+def read_seq(apidictpath,BApath):
     apidict=load_dict(apidictpath)
     print("apidict loaded")
-    objidlist=[]
-    apiseqlist=[]
+
+    b_dict={}
+    a_dict={}
+    BAdict={}
     ind=0
     for me in methodCol.find():
         objid=str(me.get("_id"))
         refapiseq=me.get('apiSeq')
-        if len(refapiseq)>2:
-            apiseq = [apidict[str(api.id)] for api in refapiseq]
-            objidlist.append(objid)
-            apiseqlist.append(apiseq)
-            print(ind,objid,apiseq)
-            ind+=1
-    with open(idfile,'w',encoding='utf8')as f:
-        for l in objidlist:
-            f.write(l+'\n')
-        f.close()
-    with open(seqfile,'w',encoding='utf8')as f:
-        for l in apiseqlist:
-            f.write(','.join(l)+'\n')
-        f.close()
+        filepath=me.get('filepath')
+        mename=me.get('methodName')
+        InOut=getInOutparam(me.get('code'))
+        Meinfo=','.join([filepath,mename,InOut])
+        apiseq = [apidict[str(api.id)] for api in refapiseq]
+        if me.get('status')=="before":
+                b_dict[Meinfo]=apiseq
+        elif me.get('status')=="after":
+                a_dict[Meinfo]=apiseq
+        print(ind,objid,apiseq)
+        ind+=1
+    ind=0
+    for key in a_dict.keys():
+        befkey=key.replace("F_dir","P_dir")
+        aseq=a_dict[key]
+        if len(aseq)>1:
+            if befkey in b_dict.keys():
+               bseq=b_dict[befkey]
+               if aseq != bseq:
+                  BAdict[key]={"before":bseq,"after":aseq}
+                  print(ind,bseq,aseq)
+                  ind+=1
+    write_dict(BAdict,BApath)
+
 def write_objidjdk():
     jdkdict={}
     ind=0
@@ -37,7 +49,7 @@ def write_objidjdk():
         jdkdict[str(objid)]=sig
         ind+=1
         print(ind)
-    with open("W:\PycharmProjects\APIRepair\Data\objid_api.dict",'w',encoding='utf8')as f:
+    with open("D:\\apirep\\objid_api.dict",'w',encoding='utf8')as f:
         f.write(str(jdkdict))
         f.close()
 def read_apiseq(idfile,seqfile):
@@ -210,8 +222,45 @@ def getInOutparam(code):
     else:
         intype="ParseError"
     return(outtype+r"\\"+"("+intype+")")
+def load_dict_fromlines(meinfo_filepath,apiseq_filepath):
+    meinfo_list=[]
+    apiseq_list=[]
+    seqdict={}
+    with open(meinfo_filepath,'r',encoding='utf8')as mf:
+        for line in mf:
+            meinfo_list.append(r"\\".join(line.split(",")[1:]))
+        mf.close()
+    with open(apiseq_filepath,'r',encoding='utf8')as mf:
+        for line in mf:
+            apiseq_list.append(line.strip().split(","))
+        mf.close()
+    for meinfo,apiseq in zip(meinfo_list,apiseq_list):
+        seqdict[meinfo]=apiseq
+    print(len(meinfo_list),len(apiseq_list))
+    print("loaded",len(seqdict))
+    return seqdict
+def filter_BADifference(ameinfo_filepath,aapiseq_filepath,bmeinfo_filepath,bapiseq_filepath,BApath):
+    beforedict=load_dict_fromlines(bmeinfo_filepath,bapiseq_filepath)
+    afterdict=load_dict_fromlines(ameinfo_filepath,aapiseq_filepath)
+    BAdict = {}
+    ind=0
+    """
+    for key in afterdict.keys():
+        befkey=key.replace("F_dir","P_dir")
+        aseq=afterdict[key]
+        if len(aseq)>1:
+            if befkey in beforedict.keys():
+               bseq=beforedict[befkey]
+               if aseq != bseq:
+                  BAdict[key]={"before":bseq,"after":aseq}
+                  print(ind,bseq,aseq)
+                  ind+=1
+    write_dict(BAdict,BApath)
+    """
 if __name__ =="__main__":
     #filter_FixPair()
     #generate_FixPair()
     #read_apiseq("W:\PycharmProjects\APIRepair\Data\objid.txt","W:\PycharmProjects\APIRepair\Data\\apiseq.txt")
-    read_seq("W:\PycharmProjects\APIRepair\Data\objid_api.dict","D:\huawei项目\SeqData\objid.txt","D:\huawei项目\SeqData\\apiseq.txt")
+    #read_seq("D:\\apirep\Data\objid_api.dict","D:\\apirep\Data\\a_meinfo.txt","D:\\apirep\Data\\a_meseq.txt","D:\\apirep\Data\\b_meinfo.txt","D:\\apirep\Data\\b_meseq.txt")
+    read_seq("D:\\apirep\Data\\objid_api.dict","D:\\apirep\Data\\BAdif.dict")
+
