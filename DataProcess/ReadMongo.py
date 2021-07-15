@@ -39,6 +39,37 @@ def read_seq(apidictpath,BApath):
                   print(ind,bseq,aseq)
                   ind+=1
     write_dict(BAdict,BApath)
+def read_code(BAcode_path):
+    b_dict={}
+    a_dict={}
+    BAdict={}
+    ind=0
+    for me in methodCol.find():
+        objid=str(me.get("_id"))
+        filepath=me.get('filepath')
+        mename=me.get('methodName')
+        code=me.get('code')
+        InOut=getInOutparam(code)
+        Meinfo=','.join([filepath,mename,InOut])
+        if me.get('status')=="before":
+                b_dict[Meinfo]=code
+        elif me.get('status')=="after":
+                a_dict[Meinfo]=code
+        print(ind,objid,Meinfo)
+        ind+=1
+    ind=0
+    for key in a_dict.keys():
+        befkey=key.replace("F_dir","P_dir")
+        acode=a_dict[key]
+        if befkey in b_dict.keys():
+            bcode=b_dict[befkey]
+            if acode != bcode:
+                BAdict[key]={"before":bcode,"after":acode}
+                print(ind)
+                ind+=1
+    print(len(BAdict))
+    write_dict(BAdict,BAcode_path)
+
 
 def write_objidjdk():
     jdkdict={}
@@ -262,5 +293,5 @@ if __name__ =="__main__":
     #generate_FixPair()
     #read_apiseq("W:\PycharmProjects\APIRepair\Data\objid.txt","W:\PycharmProjects\APIRepair\Data\\apiseq.txt")
     #read_seq("D:\\apirep\Data\objid_api.dict","D:\\apirep\Data\\a_meinfo.txt","D:\\apirep\Data\\a_meseq.txt","D:\\apirep\Data\\b_meinfo.txt","D:\\apirep\Data\\b_meseq.txt")
-    read_seq("D:\\apirep\Data\\objid_api.dict","D:\\apirep\Data\\BAdif.dict")
+    read_code("D:\\apirep\Data\\BAcodedif.dict")
 
