@@ -81,3 +81,29 @@ def Count_AMUpercent(logfile):
         f.close()
     print(len(BASeqDict))
     write_dict(BA_CodeDict, "E:\PyCharmProjects\APIRepair\Data\\filtered_BA_rawcode.txt")
+
+def apiseq_compare(befseq,afterseq):
+    ptr=0
+    while(ptr<max(len(befseq),len(afterseq))):
+        pass
+
+"统计修复APIMU过程中用到的各个API的占比"
+def Count_APIMU_APIPercent(BAdict_path,FixAPICount_path):
+    BAdict=load_dict(BAdict_path)
+    APICount={}
+    ind=0
+    for key in BAdict.keys():
+        bef_api=BAdict[key]["before"]
+        aft_api=BAdict[key]["after"]
+        Dif=[]
+        for api in aft_api:
+            if api not in bef_api:
+                Dif.append(api)
+        for ap in Dif:
+            if ap in APICount.keys():
+                APICount[ap]=APICount[ap]+1
+            else:
+                APICount[ap]=1
+        print(ind)
+        ind+=1
+    write_dict(APICount,FixAPICount_path)
