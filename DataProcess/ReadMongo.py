@@ -288,10 +288,32 @@ def filter_BADifference(ameinfo_filepath,aapiseq_filepath,bmeinfo_filepath,bapis
                   ind+=1
     write_dict(BAdict,BApath)
     """
+def build_API_vocab(BAdict_path,vocab_path):
+    BAdict=load_dict(BAdict_path)
+    apivocab={}
+    ind=0
+    for key in BAdict.keys():
+        befseq=BAdict[key]["before"]
+        aftseq=BAdict[key]["after"]
+        for api in befseq:
+            if api not in apivocab.keys():
+                apivocab[api]=1
+            else:
+                apivocab[api]=apivocab[api]+1
+        for api in aftseq:
+            if api not in apivocab.keys():
+                apivocab[api]=1
+            else:
+                apivocab[api]=apivocab[api]+1
+        print(ind)
+        ind+=1
+    write_dict(apivocab,vocab_path)
+
 if __name__ =="__main__":
     #filter_FixPair()
     #generate_FixPair()
     #read_apiseq("W:\PycharmProjects\APIRepair\Data\objid.txt","W:\PycharmProjects\APIRepair\Data\\apiseq.txt")
-    #read_seq("D:\\apirep\Data\objid_api.dict","D:\\apirep\Data\\a_meinfo.txt","D:\\apirep\Data\\a_meseq.txt","D:\\apirep\Data\\b_meinfo.txt","D:\\apirep\Data\\b_meseq.txt")
-    read_code("D:\\apirep\Data\\BAcodedif.dict")
+
+    #read_code("D:\\apirep\Data\\BAcodedif.dict")
+    build_API_vocab("D:\\apirep\Data\\BAdif.dict","D:\\apirep\Data\\APIVocab.dict")
 

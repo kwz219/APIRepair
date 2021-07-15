@@ -1,3 +1,6 @@
-from Analyze.DataAnalyze import Count_AMUpercent
+from Analyze.DataAnalyze import Analyze_API4Fix,Analyze_JDKAPI_percent
+from DataProcess.ReadMongo import load_dict
 if __name__ =="__main__":
-    Count_AMUpercent("E:\PyCharmProjects\APIRepair\Analyze\Count_AMUpercent1.log")
+    #Count_APIMU_APIPercent("D:\\apirep\Data\\BAdif.dict","D:\\apirep\Data\\API4FixCount.dict")
+    Analyze_JDKAPI_percent("D:\\apirep\Data\\API4FixCount.dict")
+    Analyze_JDKAPI_percent("D:\\apirep\Data\\APIVocab.dict")
