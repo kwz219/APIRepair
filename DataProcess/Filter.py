@@ -1,6 +1,7 @@
 import os
 from DataProcess.IOHelper import write_lines
 import json
+import shutil
 #过滤出所有Java文件
 def filter_files(APIname,RootDir):
     count=0
@@ -50,12 +51,19 @@ def filter(json_path):
     filter_types=["PushEvent"]
     filter_keywords=["fix","Fix","FIX","Bug","bug","BUG","solution","Solution","problem","Problem","Correct","correct","debug","Debug"]
     return filter_events(json_path,filter_types,filter_keywords)
+def filter_fromCodeRep(org_dir,change_dict):
+    pathlist=[]
+    with open(change_dict,'r',encoding='utf8')as cf:
+        for line in cf:
+            pathlist.append(line.strip())
+        cf.close()
+    for path in pathlist:
+
+    shutil.copy(r"E:\bug-fix\000021ead7afe80b8eb1d34d61fbaf6d41f30555\F_dir\src\main\java\jp\igapyon\diary\v3\gendiary\TodayDiaryGenerator.java",r"E:\bug-fix-Filter\000021ead7afe80b8eb1d34d61fbaf6d41f30555\F_dir\src\main\java\jp\igapyon\diary\v3\gendiary\TodayDiaryGenerator.java")
 if __name__ =="__main__":
-    """
-    path="D:\浏览器下载\java_projects"
-    filelist=filter_files("android",path)
-    write_lines("API_FileList",filelist)
     """
     events=filter("D:\浏览器下载\\2015-01-01-15.json")
     for ev in events:
         print(ev["payload"]["commits"][0]["message"])
+    """
+    filter_fromCodeRep("","")

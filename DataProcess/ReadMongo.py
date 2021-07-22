@@ -39,10 +39,11 @@ def read_seq(apidictpath,BApath):
                   print(ind,bseq,aseq)
                   ind+=1
     write_dict(BAdict,BApath)
+
+#找出commit之后code有改变的java文件
 def read_code(BAcode_path):
     b_dict={}
     a_dict={}
-    BAdict={}
     ind=0
     for me in methodCol.find():
         objid=str(me.get("_id"))
@@ -58,17 +59,21 @@ def read_code(BAcode_path):
         print(ind,objid,Meinfo)
         ind+=1
     ind=0
+    pathlist=[]
     for key in a_dict.keys():
         befkey=key.replace("F_dir","P_dir")
         acode=a_dict[key]
         if befkey in b_dict.keys():
             bcode=b_dict[befkey]
             if acode != bcode:
-                BAdict[key]={"before":bcode,"after":acode}
+                pathlist.append(key)
+                pathlist.append(befkey)
                 print(ind)
                 ind+=1
-    print(len(BAdict))
-    write_dict(BAdict,BAcode_path)
+    with open(BAcode_path,'w',encoding='utf8')as of:
+        for path in pathlist:
+            of.write(path+'\n')
+        of.close()
 
 
 def write_objidjdk():
@@ -76,11 +81,16 @@ def write_objidjdk():
     ind=0
     for jdk in apiCol.find():
         objid=jdk.get('_id')
-        sig=jdk.get('signature')
+        inParam = jdk.get("inParams")
+        apiName=jdk.get("apiName")
+        if inParam == None:
+            sig=jdk.get("signature")
+        else:
+            sig=jdk.get("className")+"."+apiName+"("+",".join(inParam)+")"
         jdkdict[str(objid)]=sig
         ind+=1
-        print(ind)
-    with open("D:\\apirep\\objid_api.dict",'w',encoding='utf8')as f:
+        print(ind,sig)
+    with open("D:\\apirep\\id_api.dict",'w',encoding='utf8')as f:
         f.write(str(jdkdict))
         f.close()
 def read_apiseq(idfile,seqfile):
@@ -314,6 +324,7 @@ if __name__ =="__main__":
     #generate_FixPair()
     #read_apiseq("W:\PycharmProjects\APIRepair\Data\objid.txt","W:\PycharmProjects\APIRepair\Data\\apiseq.txt")
 
-    #read_code("D:\\apirep\Data\\BAcodedif.dict")
-    build_API_vocab("D:\\apirep\Data\\BAdif.dict","D:\\apirep\Data\\APIVocab.dict")
+    #read_code("D:\\apirep\Data\\BAcodedif.path")
+    #build_API_vocab("D:\\apirep\Data\\BAdif.dict","D:\\apirep\Data\\APIVocab.dict")
+    read_seq("D:\\apirep\\id_api.dict","D:\\apirep\Data\\BA.seq")
 
