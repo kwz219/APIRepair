@@ -140,3 +140,30 @@ def Analyze_JDKAPI_percent(dict_path):
     print(CONTROL_COUNT, CONTROL_COUNT / total_count * 100)
     print(OTHER_API_COUNT, OTHER_API_COUNT / total_count * 100)
 
+def Count_PatchLength(BAdict_path):
+    BAdict = load_dict(BAdict_path)
+    PL_count={}
+    for key in BAdict.keys():
+        bef_api=BAdict[key]["before"]
+        aft_api=BAdict[key]["after"]
+        length=str(len(aft_api)-len(bef_api))
+        if length not in PL_count.keys():
+            PL_count[length]=1
+        else:
+            PL_count[length]=PL_count[length]+1
+    print(PL_count)
+    write_dict(PL_count,"PLcount.dict")
+
+def Filter_byPL(BAdict_path,PL_length):
+    BAdict=load_dict(BAdict_path)
+    filtered_dict={}
+    for key in BAdict.keys():
+        val=BAdict[key]
+        bef_api=val["before"]
+        aft_api=val["after"]
+        length=abs(len(aft_api)-len(bef_api))
+        if length<=PL_length:
+            filtered_dict[key]=val
+    write_dict(filtered_dict,"D:\\apirep\Data\\BA_PL5.seq")
+
+Filter_byPL("D:\\apirep\Data\\BA.seq",5)

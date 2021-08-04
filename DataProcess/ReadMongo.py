@@ -1,10 +1,28 @@
 import pymongo
 from bson.objectid import ObjectId
-myclient = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+myclient = pymongo.MongoClient("mongodb://172.29.7.221:27017/")
 mydb = myclient["APISeq"]
 apiCol=mydb["jdk_api"]
 methodCol=mydb['method_info']
 projectCol=mydb['project_info']
+def read_Trueseq(apidictpath,seqpath):
+    apidict=load_dict(apidictpath)
+    print("apidict loaded")
+
+    seqs=[]
+    ind=0
+    for me in methodCol.find():
+        objid=str(me.get("_id"))
+        refapiseq=me.get('apiSeq')
+        apiseq = [apidict[str(api.id)] for api in refapiseq]
+        seqs.append(apiseq)
+        print(ind,objid,apiseq)
+        ind+=1
+    with open(seqpath,'w',encoding='utf8')as wf:
+        for seq in seqs:
+            wf.write(' '.join(seq)+'\n')
+        wf.close()
+
 def read_seq(apidictpath,BApath):
     apidict=load_dict(apidictpath)
     print("apidict loaded")
@@ -90,7 +108,7 @@ def write_objidjdk():
         jdkdict[str(objid)]=sig
         ind+=1
         print(ind,sig)
-    with open("D:\\apirep\\id_api.dict",'w',encoding='utf8')as f:
+    with open("D:\\apirep\\True_id_api.dict",'w',encoding='utf8')as f:
         f.write(str(jdkdict))
         f.close()
 def read_apiseq(idfile,seqfile):
@@ -326,5 +344,7 @@ if __name__ =="__main__":
 
     #read_code("D:\\apirep\Data\\BAcodedif.path")
     #build_API_vocab("D:\\apirep\Data\\BAdif.dict","D:\\apirep\Data\\APIVocab.dict")
-    read_seq("D:\\apirep\\id_api.dict","D:\\apirep\Data\\BA.seq")
+    #read_seq("D:\\apirep\\id_api.dict","D:\\apirep\Data\\BA.seq")
+    write_objidjdk()
+    read_Trueseq("D:\\apirep\\True_id_api.dict","D:\\apirep\\True.seq")
 
