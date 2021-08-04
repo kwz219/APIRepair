@@ -1,6 +1,6 @@
 from typing import Iterable, Union, List
 from prenlp.data import IMDB
-
+from DataProcess.IOHelper import read_lines
 import torch
 from torch.utils.data import TensorDataset
 
@@ -60,9 +60,9 @@ def create_examples(args,
                     tokenizer,
                     mode: str = 'train') -> Iterable[Union[List[InputExample], dict]]:
     if mode == 'train':
-        dataset = DATASETS_CLASSES[args.dataset]()[0]
+        dataset = read_dataset(args.c1file_trn,args.c2file_trn)
     elif mode == 'test':
-        dataset = DATASETS_CLASSES[args.dataset]()[1]
+        dataset = read_dataset(args.c1file_val,args.c2file_val)
 
     examples = []
     for text, label in dataset:
@@ -82,4 +82,14 @@ def create_examples(args,
 
     dataset = TensorDataset(all_input_ids, all_label_ids,all_input_lengths)
 
+    return dataset
+
+def read_dataset(bepath,afpath):
+    dataset=[]
+    bes=read_lines(bepath)
+    afs=read_lines(afpath)
+    for b in bes:
+        dataset.append((b,0))
+    for af in afs:
+        dataset.append((af,1))
     return dataset
