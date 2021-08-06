@@ -2,7 +2,7 @@ from prenlp.tokenizer import NLTKMosesTokenizer
 from torch.utils.data import DataLoader
 import argparse
 from Models.Util.DataIterator import create_examples
-from Models.Util.Tokenizer import PretrainedTokenizer,Tokenizer
+from Models.Util.Tokenizer import PretrainedTokenizer,Tokenizer,Defaulttokenizer
 from trainer import Trainer
 TOKENIZER_CLASSES = {'nltk_moses': NLTKMosesTokenizer}
 def main(args):
@@ -10,6 +10,9 @@ def main(args):
     # Load tokenizer
     if args.tokenizer == 'sentencepiece':
         tokenizer = PretrainedTokenizer(pretrained_model=args.pretrained_model, vocab_file=args.vocab_file)
+    elif args.tokenizer == 'default':
+        tokenizer=Defaulttokenizer()
+        tokenizer = Tokenizer(tokenizer=tokenizer, vocab_file=args.vocab_file)
     else:
         tokenizer = TOKENIZER_CLASSES[args.tokenizer]()
         tokenizer = Tokenizer(tokenizer=tokenizer, vocab_file=args.vocab_file)

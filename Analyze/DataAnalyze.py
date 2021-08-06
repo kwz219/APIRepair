@@ -1,12 +1,5 @@
 import pymongo
 from DataProcess.ReadMongo import getInOutparam,load_dict,write_dict
-
-CONTROL_NODES=[ "<try>", "</try>", "<catch>", "</catch>", "<finally>", "</finally>",
-                "<while_condition>", "</while_condition>", "<while_body>", "</while_body>",
-                "<if_condition>", "</if_condition>", "<if_body>", "</if_body>",
-                "<else_body>", "</else_body>",
-                "<for_condition>", "</for_condition>", "<for_body>", "</for_body>",
-                "<switch_condition>", "</switch_condition>", "<case_body>", "</case_body>"]
 def Count_AMUpercent(logfile):
     myclient = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
     mydb = myclient["APISeq"]
@@ -95,7 +88,7 @@ def apiseq_compare(befseq,afterseq):
         pass
 
 "统计修复APIMU过程中用到的各个API的占比"
-def Count_API4FixPercent(BAdict_path,FixAPICount_path):
+def Count_APIMU_APIPercent(BAdict_path,FixAPICount_path):
     BAdict=load_dict(BAdict_path)
     APICount={}
     ind=0
@@ -114,56 +107,3 @@ def Count_API4FixPercent(BAdict_path,FixAPICount_path):
         print(ind)
         ind+=1
     write_dict(APICount,FixAPICount_path)
-def Analyze_API4Fix(FixAPICount_path):
-    API4Fixdict=load_dict(FixAPICount_path)
-    rank=sorted(API4Fixdict.items(),key=lambda x:x[1],reverse=True)
-    filtered_rank=[]
-    for r in rank:
-        if "java" not in r[0] and '<' not in r[0]:
-            filtered_rank.append(r)
-    print(filtered_rank[:20])
-def Analyze_JDKAPI_percent(dict_path):
-    apidict=load_dict(dict_path)
-    print(len(apidict))
-    CONTROL_COUNT=0
-    JDK_API_COUNT=0
-    OTHER_API_COUNT=0
-    for key in apidict.keys():
-        if str(key).startswith("java"):
-            JDK_API_COUNT+=int(apidict[key])
-        elif str(key) in CONTROL_NODES:
-            CONTROL_COUNT+=int(apidict[key])
-        else:
-            OTHER_API_COUNT+=int(apidict[key])
-    total_count=CONTROL_COUNT+JDK_API_COUNT+OTHER_API_COUNT
-    print(JDK_API_COUNT,JDK_API_COUNT/total_count*100)
-    print(CONTROL_COUNT, CONTROL_COUNT / total_count * 100)
-    print(OTHER_API_COUNT, OTHER_API_COUNT / total_count * 100)
-
-def Count_PatchLength(BAdict_path):
-    BAdict = load_dict(BAdict_path)
-    PL_count={}
-    for key in BAdict.keys():
-        bef_api=BAdict[key]["before"]
-        aft_api=BAdict[key]["after"]
-        length=str(len(aft_api)-len(bef_api))
-        if length not in PL_count.keys():
-            PL_count[length]=1
-        else:
-            PL_count[length]=PL_count[length]+1
-    print(PL_count)
-    write_dict(PL_count,"PLcount.dict")
-
-def Filter_byPL(BAdict_path,PL_length):
-    BAdict=load_dict(BAdict_path)
-    filtered_dict={}
-    for key in BAdict.keys():
-        val=BAdict[key]
-        bef_api=val["before"]
-        aft_api=val["after"]
-        length=abs(len(aft_api)-len(bef_api))
-        if length<=PL_length:
-            filtered_dict[key]=val
-    write_dict(filtered_dict,"D:\\apirep\Data\\BA_PL5.seq")
-
-Filter_byPL("D:\\apirep\Data\\BA.seq",5)
