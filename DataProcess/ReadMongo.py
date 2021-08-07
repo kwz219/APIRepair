@@ -1,6 +1,9 @@
 import pymongo
 from bson.objectid import ObjectId
-myclient = pymongo.MongoClient("mongodb://172.29.7.221:27017/")
+
+from DataProcess.IOHelper import write_lines
+
+myclient = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
 mydb = myclient["APISeq"]
 apiCol=mydb["jdk_api"]
 methodCol=mydb['method_info']
@@ -62,36 +65,49 @@ def read_seq(apidictpath,BApath):
 def read_code(BAcode_path):
     b_dict={}
     a_dict={}
+    BAdict=load_dict("D:\\apirep\Data\\BA.seq")
+    becode=[]
+    afcode=[]
     ind=0
     for me in methodCol.find():
         objid=str(me.get("_id"))
         filepath=me.get('filepath')
         mename=me.get('methodName')
         code=me.get('code')
+
+        code_line=code.replace('\n',' ')
+        code_line = code_line.replace('\r', ' ')
         InOut=getInOutparam(code)
         Meinfo=','.join([filepath,mename,InOut])
-        if me.get('status')=="before":
-                b_dict[Meinfo]=code
-        elif me.get('status')=="after":
-                a_dict[Meinfo]=code
-        print(ind,objid,Meinfo)
-        ind+=1
+        Meinfo=Meinfo.replace('\\','\\\\')
+        if len(code_line)>=10:
+            if me.get('status')=="before":
+                    b_dict[Meinfo]=code_line
+            elif me.get('status')=="after":
+                    a_dict[Meinfo]=code_line
+            print(ind,objid,Meinfo)
+            ind+=1
     ind=0
-    pathlist=[]
-    for key in a_dict.keys():
-        befkey=key.replace("F_dir","P_dir")
-        acode=a_dict[key]
-        if befkey in b_dict.keys():
-            bcode=b_dict[befkey]
-            if acode != bcode:
-                pathlist.append(key)
-                pathlist.append(befkey)
-                print(ind)
-                ind+=1
-    with open(BAcode_path,'w',encoding='utf8')as of:
-        for path in pathlist:
-            of.write(path+'\n')
-        of.close()
+    beMeinfolist=[]
+    becodelist=[]
+    afMeinfolist=[]
+    afcodelist=[]
+    for key in BAdict.keys():
+        a_key=key.replace("P_dir","F_dir")
+        b_key=key.replace("F_dir","P_dir")
+        if a_key in a_dict.keys() and b_key in b_dict.keys():
+            afMeinfolist.append(a_key)
+            beMeinfolist.append(b_key)
+            afcodelist.append(a_dict[a_key])
+            becodelist.append(b_dict[b_key])
+            print(ind)
+            ind+=1
+
+    write_lines("D:\APIMU\Data\\raw_code\meinfo_filter.af",afMeinfolist)
+    write_lines("D:\APIMU\Data\\raw_code\meinfo_filter.be", beMeinfolist)
+    write_lines("D:\APIMU\Data\\raw_code\code_filter.af", afcodelist)
+    write_lines("D:\APIMU\Data\\raw_code\code_filter.be", becodelist)
+
 
 
 def write_objidjdk():
@@ -111,61 +127,6 @@ def write_objidjdk():
     with open("D:\\apirep\\True_id_api.dict",'w',encoding='utf8')as f:
         f.write(str(jdkdict))
         f.close()
-def read_apiseq(idfile,seqfile):
-    apidict={}
-    results=methodCol.aggregate(
-        [
-
-            {
-                '$lookup':
-                    {
-                        "from": "jdk_api",  # 需要联合查询的另一张表B
-                        "localField": "apiSeq.$id",  # 表A的字段
-                        "foreignField": "_id",  # 表B的字段
-                        "as": "task_docs"  # 根据A、B联合生成的新字段名
-                    },
-            },
-            {
-              '$project':
-                  {
-                      "task_docs._id":0,
-                      "task_docs.apiName":0,
-                      "task_docs.className":0,
-                      "task_docs._class":0,
-                      'task_docs.inParams':0,
-                      'task_docs.outParams':0,
-                      'commithash':0,
-                      'status':0,
-                      'project_info':0,
-                      'inParams':0,
-                      'apiSeq':0,
-                      'className':0,
-                      '_class':0,
-                  }
-            },
-
-
-        ]
-    )
-    idlist=[]
-    apiseqlist=[]
-    ind=0
-    for re in results:
-        seq=SimplifySeq(re["task_docs"])
-        objid=re["_id"]
-        idlist.append(str(objid))
-        apiseqlist.append(" ".join(seq))
-        print(ind,apiseqlist[-1])
-        ind+=1
-    with open(idfile,'w',encoding='utf8')as idf:
-        for line in idlist:
-            idf.write(line+'\n')
-        idf.close()
-    with open(seqfile,'w',encoding='utf8')as sf:
-        for line in apiseqlist:
-            sf.write(line+'\n')
-        sf.close()
-
 
 
 def write_dict(dict,save_path):
@@ -191,70 +152,6 @@ def filter_FixPair():
             print(ind,{"before":before_api,"after":after_api})
     write_dict(filted_BAdict,"E:\PyCharmProjects\APIRepair\Data\\filtered_BA.txt")
 
-def generate_FixPair():
-    beforedict={}
-    afterdict={}
-    results=methodCol.aggregate(
-        [
-
-            {
-                '$lookup':
-                    {
-                        "from": "jdk_api",  # 需要联合查询的另一张表B
-                        "localField": "apiSeq.$id",  # 表A的字段
-                        "foreignField": "_id",  # 表B的字段
-                        "as": "task_docs"  # 根据A、B联合生成的新字段名
-                    },
-            },
-            {
-              '$project':
-                  {
-                      "task_docs._id":0,
-                      "task_docs.apiName":0,
-                      "task_docs.className":0,
-                      "task_docs._class":0,
-                      'task_docs.inParams':0,
-                      'task_docs.outParams':0,
-                      'commithash':0,
-                      'project_info':0,
-                      'inParams':0,
-                      'apiSeq':0,
-                      'className':0,
-                      '_class':0,
-
-                  }
-            },
-        ]
-    )
-    beforedict={}
-    afterdict={}
-    for re in results:
-        seq=re['task_docs']
-        codes=re['code']
-        in_out=getInOutparam(codes)
-        status=re['status']
-        path=re['filepath']+r"\\"+re['methodName']+r"\\"+(in_out)
-
-        if status=="after":
-            afterdict[path]=SimplifySeq(seq)
-            print("after",len(afterdict))
-
-        elif status=="before":
-            beforedict[path]=SimplifySeq(seq)
-            print("before",len(beforedict))
-    filted_BAdict=dict()
-    ind=0
-    print("filtering......")
-    for key in beforedict.keys():
-        afterkey=key.replace("P_dir","F_dir")
-        if afterkey in afterdict.keys():
-            before_api=beforedict[key]
-            after_api=afterdict[afterkey]
-            if before_api != after_api:
-                filted_BAdict[key] = {"before": before_api, "after": after_api}
-                ind += 1
-                print(ind, {"before": before_api, "after": after_api})
-    write_dict(filted_BAdict, "E:\PyCharmProjects\APIRepair\Data\\filtered_BA.txt")
 def SimplifySeq(apiseq):
     simlist=[]
     for api in apiseq:
@@ -345,6 +242,5 @@ if __name__ =="__main__":
     #read_code("D:\\apirep\Data\\BAcodedif.path")
     #build_API_vocab("D:\\apirep\Data\\BAdif.dict","D:\\apirep\Data\\APIVocab.dict")
     #read_seq("D:\\apirep\\id_api.dict","D:\\apirep\Data\\BA.seq")
-    write_objidjdk()
-    read_Trueseq("D:\\apirep\\True_id_api.dict","D:\\apirep\\True.seq")
+    read_code("")
 

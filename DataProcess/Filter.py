@@ -1,8 +1,11 @@
 import os
-from DataProcess.IOHelper import write_lines
+from DataProcess.IOHelper import write_lines, read_lines
 import json
 import shutil
 #过滤出所有Java文件
+from DataProcess.ReadMongo import load_dict
+
+
 def filter_files(APIname,RootDir):
     count=0
     filenames=[]
@@ -57,13 +60,22 @@ def filter_fromCodeRep(org_dir,change_dict):
         for line in cf:
             pathlist.append(line.strip())
         cf.close()
-    for path in pathlist:
-
-    shutil.copy(r"E:\bug-fix\000021ead7afe80b8eb1d34d61fbaf6d41f30555\F_dir\src\main\java\jp\igapyon\diary\v3\gendiary\TodayDiaryGenerator.java",r"E:\bug-fix-Filter\000021ead7afe80b8eb1d34d61fbaf6d41f30555\F_dir\src\main\java\jp\igapyon\diary\v3\gendiary\TodayDiaryGenerator.java")
+"从BAcode里面找出与BAseq对应的code对"
+def match_code2seq(beinfo_f,afinfo_f,becode_f,afcode_f,baseqdict_f):
+    beinfo=read_lines(beinfo_f)
+    afinfo=read_lines(afinfo_f)
+    becode=read_lines(becode_f)
+    afcode=read_lines(afcode_f)
+    print(len(beinfo),len(afinfo),len(becode),len(afcode))
+    #assert len(beinfo)==len(afinfo) and len(becode)==len(afcode) and len(afinfo)==len(becode)
+    baseqdict=load_dict(baseqdict_f)
+    for binfo,bcode,ainfo,acode in zip(beinfo,afinfo,becode,afcode):
+        ainfo_key=bcode.replace('\\','\\\\')
+        print(ainfo_key)
 if __name__ =="__main__":
     """
     events=filter("D:\浏览器下载\\2015-01-01-15.json")
     for ev in events:
         print(ev["payload"]["commits"][0]["message"])
     """
-    filter_fromCodeRep("","")
+    match_code2seq("D:\APIMU\Data\\raw_code\\meinfo.be","D:\APIMU\Data\\raw_code\\meinfo.af","D:\APIMU\Data\\raw_code\\code.be","D:\APIMU\Data\\raw_code\\code.af","D:\\apirep\Data\\BA.seq")

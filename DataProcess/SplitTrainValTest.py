@@ -1,3 +1,4 @@
+from DataProcess.IOHelper import read_lines, write_lines
 from DataProcess.ReadMongo import load_dict
 import random
 
@@ -100,9 +101,34 @@ def merge_into(pathpre,mergeids):
         for line in merged_be:
             f.write(line+'\n')
         f.close()
+"分割以code body per line形式存储的dataset"
+def split_lines(pathpre,trn_p,val_p,test_p,outputpre):
+    becodes=read_lines(pathpre+".be")
+    afcodes=read_lines(pathpre+".af")
+    assert len(becodes)==len(afcodes)
+    trn_be,val_be,test_be=[],[],[]
+    trn_af, val_af, test_af = [], [], []
+    for bcode,acode in zip(becodes,afcodes):
+        seed=random.random()
+        if seed <=trn_p:
+            trn_be.append(bcode)
+            trn_af.append(acode)
+        elif seed > trn_p and seed <=(trn_p+val_p):
+            val_be.append(bcode)
+            val_af.append(acode)
+        elif seed > test_p:
+            test_be.append(bcode)
+            test_af.append(acode)
+    write_lines(outputpre+"/trn.be",trn_be)
+    write_lines(outputpre + "/trn.af", trn_af)
+    write_lines(outputpre + "/val.be", val_be)
+    write_lines(outputpre + "/val.af", val_af)
+    write_lines(outputpre + "/test.be", test_be)
+    write_lines(outputpre + "/test.af", test_af)
 
 
 #split_tseq_into(10,r"D:\apirep\True.seq")
 #merge_seq_into(r"D:\APIMU\Data\tseq",[0,1,2,3,4,5,6,7,8])
 #split_into(10,r"D:\apirep\Data\BA_PL5.seq")
-merge_into(r"D:\APIMU\Data\raw_l5",[0,1,2,3,4,5,6,7])
+#merge_into(r"D:\APIMU\Data\raw_l5",[0,1,2,3,4,5,6,7])
+split_lines("D:\APIMU\Data\\raw_code\\code",0.7,0.15,0.15,"D:\APIMU\Data\\raw_code")
