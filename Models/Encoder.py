@@ -168,15 +168,18 @@ class TransformerEncoder(EncoderBase):
         self._check_args(src, lengths)
 
         emb = self.embeddings(src)
-
+        print("emb",emb.size())
         out = emb.transpose(0, 1).contiguous()
         mask = ~sequence_mask(lengths).unsqueeze(1)
         # Run the forward pass of every layer of the tranformer.
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out)
+        print("out1",out.size())
         out, _ = torch.max(out, dim=1)
+        print("out2", out.size())
         out=self.softmax(self.linear(out))
+        print("out3", out.size())
         return emb, out, lengths
 
     def update_dropout(self, dropout, attention_dropout):
