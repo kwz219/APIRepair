@@ -38,7 +38,8 @@ class TokenCLSModel(EncoderBase):
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
         # layers to classify
         self.n_labels=n_labels
-        self.linear = nn.Linear(d_model, n_labels)
+        self.classifier = nn.Linear(d_model, n_labels)
+        self.softmax=nn.Softmax(dim=-1)
 
 
     @classmethod
@@ -71,9 +72,8 @@ class TokenCLSModel(EncoderBase):
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out)#[batch_size,sequence_len,hidden_dim]
-        out, _ = torch.max(out, dim=1)
-        print(out.size())
-        out=self.softmax(self.linear(out))
+        out=self.classifier(out)#[batch_size,sequence_len,n_labels]
+        out=self.softmax(out)
         return emb, out, lengths
 
     def update_dropout(self, dropout, attention_dropout):

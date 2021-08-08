@@ -1,5 +1,8 @@
 from Models.Embedding import Embeddings
 from Models.Encoder import  TransformerEncoder
+from Models.TokenCLS import TokenCLSModel
+
+
 def build_embeddings(opt, src_Tokenizer, for_encoder=True):
     """
     Args:
@@ -27,6 +30,10 @@ def build_embeddings(opt, src_Tokenizer, for_encoder=True):
     )
     return emb
 def build_Model(opt,src_Tokenizer):
-    emb=build_embeddings(opt,src_Tokenizer)
-    encoder=TransformerEncoder.from_opt(opt,emb)
+    if opt.tokenCLS==False:
+        emb=build_embeddings(opt,src_Tokenizer)
+        encoder=TransformerEncoder.from_opt(opt,emb)
+    else:
+        emb = build_embeddings(opt, src_Tokenizer)
+        encoder=TokenCLSModel.from_opt(opt,emb)
     return encoder

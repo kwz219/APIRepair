@@ -33,11 +33,17 @@ class Trainer(object):
             emb, outputs,lengths = self.model(inputs,src_lengths)
             # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
             #print(outputs.shape)
-            loss = self.criterion(outputs, labels)
-            losses += loss.item()
-            acc = (outputs.argmax(dim=-1) == labels).sum()
-            accs += acc.item()
-
+            if self.args.tokenCLS==False:
+                loss = self.criterion(outputs, labels)
+                losses += loss.item()
+                acc = (outputs.argmax(dim=-1) == labels).sum()
+                accs += acc.item()
+            else:
+                loss=self.criterion(outputs.view(-1,self.model.n_labels),labels.view(-1))
+                losses += loss.item()
+                # TODO: implement acc calculate for all MU type
+                acc = (outputs.argmax(dim=-1) == labels).sum()
+                accs += acc.item()
             "参数更新"
             self.optimizer.zero_grad()
             loss.backward()

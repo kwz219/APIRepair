@@ -34,10 +34,13 @@ def main(args):
 
 if __name__ =="__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--c1file_trn', default='c1file_trn', type=str, help='class1训练数据集')
-    parser.add_argument('--c2file_trn', default='c2file_trn', type=str, help='class2训练数据集')
-    parser.add_argument('--c1file_val', default='c1file_val', type=str, help='class1验证数据集')
-    parser.add_argument('--c2file_val', default='c2file_val', type=str, help='class2验证数据集')
+    group = parser.add_argument_group('Token CLS')
+    group.add('--tokenCLS',default=False,help='是否进行tokenCLS任务')
+    group.add('--src_seq', default='', type=str, help='')
+    group.add('--src_labels', default='', type=str, help='')
+    group.add('--val_seq', default='', type=str, help='')
+    group.add('--val_labels', default='', type=str, help='')
+
     parser.add_argument('--vocab_file',          default='',     type=str, help='词典位置')
     parser.add_argument('--tokenizer',           default='',  type=str, help='tokenizer to tokenize input corpus. available: sentencepiece, '+', '.join(TOKENIZER_CLASSES.keys()))
     parser.add_argument('--pretrained_model',    default='',     type=str, help='句向量的预训练模型。pretrained sentencepiece model path. used only when tokenizer=\'sentencepiece\'')
