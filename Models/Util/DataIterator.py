@@ -62,9 +62,9 @@ def convert_MUCLSexamples_to_features(examples: List[MUCLS_Example],
                                  tokenizer,
                                  max_seq_len: int) -> List[MUCLS_Features]:
     pad_token_id = tokenizer.pad_token_id
-    print("<UNK>",tokenizer.unk_token_id)
-    print("<BOS>", tokenizer.bos_token_id)
-    print("<EOS>", tokenizer.eos_token_id)
+    #print("<UNK>",tokenizer.unk_token_id)
+    #print("<BOS>", tokenizer.bos_token_id)
+    #print("<EOS>", tokenizer.eos_token_id)
     features = []
     src_lengths=[]
     unconsiscount=0

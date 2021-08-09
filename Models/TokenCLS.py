@@ -69,13 +69,14 @@ class TokenCLSModel(EncoderBase):
         emb = self.embeddings(src)
 
         out = emb.transpose(0, 1).contiguous()
-        mask = ~sequence_mask(lengths,max_len=self.max_len).unsqueeze(1)
+        mask = ~sequence_mask(lengths,max_len=self.max_len).unsqueeze(1)#[batch_size,1,seq_len]
         # Run the forward pass of every layer of the tranformer.
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out)#[batch_size,sequence_len,hidden_dim]
         out=self.classifier(out)#[batch_size,sequence_len,n_labels]
         out=self.softmax(out)
+
         return emb, out, lengths,mask
 
     def update_dropout(self, dropout, attention_dropout):

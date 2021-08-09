@@ -25,6 +25,7 @@ class Trainer(object):
         n_batches, n_samples = len(self.train_loader), len(self.train_loader.dataset)
 
         self.model.train()
+        current_samples=0
         for i, batch in enumerate(self.train_loader):
 
             inputs, labels ,src_lengths= map(lambda x: x.to(self.device), batch)
@@ -33,6 +34,7 @@ class Trainer(object):
             emb, outputs,lengths,mask = self.model(inputs,src_lengths)
             # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
             #print(outputs.shape)
+            current_samples+=src_lengths.sum().item()
             if self.args.tokenCLS==False:
                 loss = self.criterion(outputs, labels)
                 losses += loss.item()
@@ -40,7 +42,7 @@ class Trainer(object):
                 accs += acc.item()
             else:
                 if mask is not None:
-                    active_loss = outputs.view(-1) == 1
+                    active_loss = mask.view(-1) == False
                     active_logits = outputs.view(-1, self.args.n_labels)
                     active_labels = torch.where(
                         active_loss, labels.view(-1), torch.tensor(self.criterion.ignore_index).type_as(labels)
@@ -59,10 +61,10 @@ class Trainer(object):
 
             if i % (n_batches // 5) == 0 and i != 0:
                 print('Iteration {} ({}/{})\tLoss: {:.4f} Acc: {:4f}%'.format(
-                    i, i, n_batches, losses / i, accs / (i * self.args.batch_size) * 100.))
+                    i, i, n_batches, losses / i, accs / (current_samples) * 100.))
 
         print('Train Epoch: {}\t>\tLoss: {:.4f} / Acc: {:.1f}%'.format(epoch, losses / n_batches,
-                                                                       accs / n_samples * 100.))
+                                                                       accs / current_samples * 100.))
 
     def validate(self, epoch):
         losses, accs = 0, 0
@@ -70,21 +72,37 @@ class Trainer(object):
 
         self.model.eval()
         with torch.no_grad():
+            current_samples = 0
             for i, batch in enumerate(self.test_loader):
                 inputs, labels,src_lengths = map(lambda x: x.to(self.device), batch)
                 # |inputs| : (batch_size, seq_len), |labels| : (batch_size)
 
-                emb, outputs,lengthes = self.model(inputs,src_lengths)
+                emb, outputs,lengths,mask = self.model(inputs,src_lengths)
                 #print(outputs.shape)
+                current_samples += src_lengths.sum().item()
                 # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
-
-                loss = self.criterion(outputs, labels)
-                losses += loss.item()
-                acc = (outputs.argmax(dim=-1) == labels).sum()
-                accs += acc.item()
+                if self.args.tokenCLS == False:
+                    loss = self.criterion(outputs, labels)
+                    losses += loss.item()
+                    acc = (outputs.argmax(dim=-1) == labels).sum()
+                    accs += acc.item()
+                else:
+                    if mask is not None:
+                        active_loss = mask.view(-1) == False
+                        active_logits = outputs.view(-1, self.args.n_labels)
+                        active_labels = torch.where(
+                            active_loss, labels.view(-1), torch.tensor(self.criterion.ignore_index).type_as(labels)
+                        )
+                        loss = self.criterion(active_logits, active_labels)
+                    else:
+                        loss = self.criterion(outputs.view(-1, self.args.n_labels), labels.view(-1))
+                    losses += loss.item()
+                    # TODO: implement acc calculate for all MU type
+                    acc = (outputs.argmax(dim=-1) == labels).sum()
+                    accs += acc.item()
 
         print('Valid Epoch: {}\t>\tLoss: {:.4f} / Acc: {:.1f}%'.format(epoch, losses / n_batches,
-                                                                       accs / n_samples * 100.))
+                                                                       accs / current_samples * 100.))
 
     def save(self, epoch, model_prefix='model', root='.model'):
         path = Path(root) / (model_prefix + '.ep%d' % epoch)
