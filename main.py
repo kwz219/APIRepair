@@ -1,7 +1,7 @@
 from prenlp.tokenizer import NLTKMosesTokenizer
 from torch.utils.data import DataLoader
 import argparse
-from Models.Util.DataIterator import create_examples
+from Models.Util.DataIterator import create_examples, create_TokenCLSexamples
 from Models.Util.Tokenizer import PretrainedTokenizer,Tokenizer,Defaulttokenizer
 from trainer import Trainer
 TOKENIZER_CLASSES = {'nltk_moses': NLTKMosesTokenizer}
@@ -18,8 +18,12 @@ def main(args):
         tokenizer = Tokenizer(tokenizer=tokenizer, vocab_file=args.vocab_file)
 
     # Build DataLoader
-    train_dataset = create_examples(args, tokenizer, mode='train')
-    test_dataset = create_examples(args, tokenizer, mode='test')
+    if args.tokenCLS==False:
+        train_dataset = create_examples(args, tokenizer, mode='train')
+        test_dataset = create_examples(args, tokenizer, mode='test')
+    else:
+        train_dataset = create_TokenCLSexamples(args, tokenizer, mode='train')
+        test_dataset = create_TokenCLSexamples(args, tokenizer, mode='test')
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=True)
 
@@ -35,11 +39,12 @@ def main(args):
 if __name__ =="__main__":
     parser = argparse.ArgumentParser()
     group = parser.add_argument_group('Token CLS')
-    group.add('--tokenCLS',default=False,help='是否进行tokenCLS任务')
-    group.add('--src_seq', default='', type=str, help='')
-    group.add('--src_labels', default='', type=str, help='')
-    group.add('--val_seq', default='', type=str, help='')
-    group.add('--val_labels', default='', type=str, help='')
+    group.add_argument('--tokenCLS',default=False,help='是否进行tokenCLS任务')
+    group.add_argument('--n_labels', default=5, help='一共有几种类别')
+    group.add_argument('--src_seq', default='', type=str, help='')
+    group.add_argument('--src_labels', default='', type=str, help='')
+    group.add_argument('--val_seq', default='', type=str, help='')
+    group.add_argument('--val_labels', default='', type=str, help='')
 
     parser.add_argument('--vocab_file',          default='',     type=str, help='词典位置')
     parser.add_argument('--tokenizer',           default='',  type=str, help='tokenizer to tokenize input corpus. available: sentencepiece, '+', '.join(TOKENIZER_CLASSES.keys()))

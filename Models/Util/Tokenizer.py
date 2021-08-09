@@ -33,7 +33,7 @@ class Tokenizer(object):
     def tokenize(self, text: str) -> List[str]:
         """Tokenize given text.
         """
-        return self.tokenizer.tokenize( text)
+        return self.tokenizer.tokenize(text)
 
     def convert_token_to_id(self, token: str) -> int:
         """Convert a token (str) in an id (integer) using the vocab.

@@ -30,7 +30,7 @@ class Trainer(object):
             inputs, labels ,src_lengths= map(lambda x: x.to(self.device), batch)
             # |inputs| : (batch_size, seq_len), |labels| : (batch_size)
 
-            emb, outputs,lengths = self.model(inputs,src_lengths)
+            emb, outputs,lengths,mask = self.model(inputs,src_lengths)
             # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
             #print(outputs.shape)
             if self.args.tokenCLS==False:
@@ -39,7 +39,15 @@ class Trainer(object):
                 acc = (outputs.argmax(dim=-1) == labels).sum()
                 accs += acc.item()
             else:
-                loss=self.criterion(outputs.view(-1,self.model.n_labels),labels.view(-1))
+                if mask is not None:
+                    active_loss = outputs.view(-1) == 1
+                    active_logits = outputs.view(-1, self.args.n_labels)
+                    active_labels = torch.where(
+                        active_loss, labels.view(-1), torch.tensor(self.criterion.ignore_index).type_as(labels)
+                    )
+                    loss = self.criterion(active_logits, active_labels)
+                else:
+                    loss = self.criterion(outputs.view(-1, self.args.n_labels), labels.view(-1))
                 losses += loss.item()
                 # TODO: implement acc calculate for all MU type
                 acc = (outputs.argmax(dim=-1) == labels).sum()

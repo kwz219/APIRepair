@@ -25,9 +25,10 @@ class TokenCLSModel(EncoderBase):
 
     def __init__(self, num_layers, d_model, heads, d_ff, dropout,
                  attention_dropout, embeddings, max_relative_positions,
-                 n_labels,pos_ffn_activation_fn=ActivationFunction.relu):
+                 n_labels,max_len,pos_ffn_activation_fn=ActivationFunction.relu):
         super(TokenCLSModel, self).__init__()
 
+        self.max_len=max_len
         self.embeddings = embeddings
         self.transformer = nn.ModuleList(
             [TransformerEncoderLayer(
@@ -56,6 +57,7 @@ class TokenCLSModel(EncoderBase):
             embeddings,
             opt.max_relative_positions,
             opt.n_labels,
+            opt.max_seq_len,
             pos_ffn_activation_fn=ActivationFunction.relu,
         )
 
@@ -67,14 +69,14 @@ class TokenCLSModel(EncoderBase):
         emb = self.embeddings(src)
 
         out = emb.transpose(0, 1).contiguous()
-        mask = ~sequence_mask(lengths).unsqueeze(1)
+        mask = ~sequence_mask(lengths,max_len=self.max_len).unsqueeze(1)
         # Run the forward pass of every layer of the tranformer.
         for layer in self.transformer:
             out = layer(out, mask)
         out = self.layer_norm(out)#[batch_size,sequence_len,hidden_dim]
         out=self.classifier(out)#[batch_size,sequence_len,n_labels]
         out=self.softmax(out)
-        return emb, out, lengths
+        return emb, out, lengths,mask
 
     def update_dropout(self, dropout, attention_dropout):
         self.embeddings.update_dropout(dropout)

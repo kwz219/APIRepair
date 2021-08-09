@@ -41,4 +41,7 @@ def build_label(false_seq,true_seq):
     assert len(labels)==len(false_seq)
     return labels
 
-build_errorLabels("D:\\apirep\Data\BA_PL5.seq","D:\\apirep\Data\MUCLS")
+#build_errorLabels("D:\\apirep\Data\BA_PL5.seq","D:\\apirep\Data\MUCLS")
+str1="12345"
+str2="12895"
+print(build_label(str1,str2))

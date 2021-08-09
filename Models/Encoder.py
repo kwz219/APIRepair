@@ -180,7 +180,7 @@ class TransformerEncoder(EncoderBase):
         print("out2", out.size())
         out=self.softmax(self.linear(out))
         print("out3", out.size())
-        return emb, out, lengths
+        return emb, out, lengths,mask
 
     def update_dropout(self, dropout, attention_dropout):
         self.embeddings.update_dropout(dropout)
