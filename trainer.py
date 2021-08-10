@@ -34,7 +34,6 @@ class Trainer(object):
             emb, outputs,lengths,mask = self.model(inputs,src_lengths)
             # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
             #print(outputs.shape)
-            current_samples+=src_lengths.sum().item()
             if self.args.tokenCLS==False:
                 loss = self.criterion(outputs, labels)
                 losses += loss.item()
@@ -43,23 +42,26 @@ class Trainer(object):
             else:
                 if mask is not None:
                     active_loss = mask.view(-1) == False
+                    #print(active_loss,active_loss.size())
                     active_logits = outputs.view(-1, self.args.n_labels)
                     active_labels = torch.where(
                         active_loss, labels.view(-1), torch.tensor(self.criterion.ignore_index).type_as(labels)
                     )
                     loss = self.criterion(active_logits, active_labels)
+                    #print("loss",loss,loss.size())
                 else:
                     loss = self.criterion(outputs.view(-1, self.args.n_labels), labels.view(-1))
                 losses += loss.item()
                 # TODO: implement acc calculate for all MU type
-                acc = (outputs.argmax(dim=-1) == labels).sum()
+                current_samples+=active_loss.sum().item()
+                acc = (active_logits.argmax(dim=-1) == active_labels).sum()
                 accs += acc.item()
             "参数更新"
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
 
-            if i % (n_batches // 5) == 0 and i != 0:
+            if i % (10) == 0 and i != 0:
                 print('Iteration {} ({}/{})\tLoss: {:.4f} Acc: {:4f}%'.format(
                     i, i, n_batches, losses / i, accs / (current_samples) * 100.))
 
@@ -79,7 +81,7 @@ class Trainer(object):
 
                 emb, outputs,lengths,mask = self.model(inputs,src_lengths)
                 #print(outputs.shape)
-                current_samples += src_lengths.sum().item()
+
                 # |outputs| : (batch_size, 2), |attention_weights| : [(batch_size, n_attn_heads, seq_len, seq_len)] * n_layers
                 if self.args.tokenCLS == False:
                     loss = self.criterion(outputs, labels)
@@ -98,7 +100,8 @@ class Trainer(object):
                         loss = self.criterion(outputs.view(-1, self.args.n_labels), labels.view(-1))
                     losses += loss.item()
                     # TODO: implement acc calculate for all MU type
-                    acc = (outputs.argmax(dim=-1) == labels).sum()
+                    current_samples += active_loss.sum().item()
+                    acc = (active_logits.argmax(dim=-1) == active_labels).sum()
                     accs += acc.item()
 
         print('Valid Epoch: {}\t>\tLoss: {:.4f} / Acc: {:.1f}%'.format(epoch, losses / n_batches,

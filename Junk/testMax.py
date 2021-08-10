@@ -8,4 +8,14 @@ def test_torchmax():
     print(max_d0)
     print(max_d1)
     print(max_d2)
-test_torchmax()
+
+def testTF():
+    x=torch.tensor([True,True,True,False,False])
+    print(x.sum())
+
+    #结论 True=1,False=0
+def testCOUNT():
+    x=torch.tensor([True,True,True,False,False])
+    print(x.count_nonzero())
+
+testCOUNT()
