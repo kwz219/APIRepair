@@ -123,7 +123,7 @@ class Trainer(object):
                     label_record+=(active_labels.cpu().numpy().tolist())
                     pred_record+=(active_logits.argmax(dim=-1).cpu().numpy().tolist())
         assert len(label_record)==len(pred_record) and len(label_record)%self.args.max_seq_len==0
-        write_TokenCLSoutput(self.args.output_dir,pred_record,label_record,epoch,self.args.output_model_prefix,self.args.max_seq_length)
+        write_TokenCLSoutput(self.args.output_dir,pred_record,label_record,epoch,self.args.output_model_prefix,self.args.max_seq_len)
         print('Valid Epoch: {}\t>\tLoss: {:.4f} / Acc: {:.1f}%'.format(epoch, losses / n_batches,
                                                                        accs / current_samples * 100.))
 
