@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from model_builder import build_Model
-
+from DataProcess.IOHelper import write_TokenCLSoutput
 class Trainer(object):
     def __init__(self, args, train_loader, test_loader, tokenizer):
         self.args = args
@@ -19,13 +19,19 @@ class Trainer(object):
         "优化器采用Adam,损失函数采用交叉熵"
         self.optimizer = optim.Adam(self.model.parameters(), args.lr)
         self.criterion = nn.CrossEntropyLoss()
-
+    def category_samples(self,category,labels_dim1):
+        sample=(labels_dim1==category).sum().item()
+        return sample
+    def category_hits(self,category,labels_dim1,logits):
+        category_labels=torch.where(labels_dim1==category,labels_dim1,torch.tensor(-100).type_as(labels_dim1))
+        return logits.argmax(dim=-1)==category_labels.sum().item()
     def train(self, epoch):
         losses, accs = 0, 0
         n_batches, n_samples = len(self.train_loader), len(self.train_loader.dataset)
 
         self.model.train()
         current_samples=0
+
         for i, batch in enumerate(self.train_loader):
 
             inputs, labels ,src_lengths= map(lambda x: x.to(self.device), batch)
@@ -56,6 +62,11 @@ class Trainer(object):
                 current_samples+=active_loss.sum().item()
                 acc = (active_logits.argmax(dim=-1) == active_labels).sum()
                 accs += acc.item()
+                """
+                for i in range(5):
+                    type_samples[i]+=self.category_samples(torch.tensor(i).type_as(active_labels),active_labels.view(-1))
+                    type_accs[i]+=self.category_hits(torch.tensor(i).type_as(active_labels),active_labels.view(-1),active_logits)
+                """
             "参数更新"
             self.optimizer.zero_grad()
             loss.backward()
@@ -64,9 +75,13 @@ class Trainer(object):
             if i % (10) == 0 and i != 0:
                 print('Iteration {} ({}/{})\tLoss: {:.4f} Acc: {:4f}%'.format(
                     i, i, n_batches, losses / i, accs / (current_samples) * 100.))
-
+            """
+            if i % (10) == 0 and i != 0:
+                print('Iteration {} ({}/{})\tLoss: {:.4f} Acc: {:4f}%  cate0:{:4f}% cate1:{:4f}% cate2:{:4f}% cate3:{:4f}% cate4:{:4f}%'.format(
+                    i, i, n_batches, losses / i, accs / (current_samples) * 100.,type_accs[0]/type_samples[0]*100.,type_accs[1]/type_samples[1]*100.,type_accs[2]/type_samples[2]*100.,type_accs[3]/type_samples[3]*100.,type_accs[4]/type_samples[4]*100.))
+            """
         print('Train Epoch: {}\t>\tLoss: {:.4f} / Acc: {:.1f}%'.format(epoch, losses / n_batches,
-                                                                       accs / current_samples * 100.))
+                                                                           accs / current_samples * 100.))
 
     def validate(self, epoch):
         losses, accs = 0, 0
@@ -75,6 +90,8 @@ class Trainer(object):
         self.model.eval()
         with torch.no_grad():
             current_samples = 0
+            label_record=[]
+            pred_record=[]
             for i, batch in enumerate(self.test_loader):
                 inputs, labels,src_lengths = map(lambda x: x.to(self.device), batch)
                 # |inputs| : (batch_size, seq_len), |labels| : (batch_size)
@@ -103,7 +120,10 @@ class Trainer(object):
                     current_samples += active_loss.sum().item()
                     acc = (active_logits.argmax(dim=-1) == active_labels).sum()
                     accs += acc.item()
-
+                    label_record+=(active_labels.numpy().tolist())
+                    pred_record+=(active_logits.argmax(dim=-1).numpy().tolist())
+        assert len(label_record)==len(pred_record) and len(label_record)%self.args.max_seq_len==0
+        write_TokenCLSoutput(self.args.output_dir,pred_record,label_record,epoch,self.args.output_model_prefix,self.args.max_seq_length)
         print('Valid Epoch: {}\t>\tLoss: {:.4f} / Acc: {:.1f}%'.format(epoch, losses / n_batches,
                                                                        accs / current_samples * 100.))
 

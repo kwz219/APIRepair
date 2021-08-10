@@ -50,6 +50,7 @@ if __name__ =="__main__":
     parser.add_argument('--tokenizer',           default='',  type=str, help='tokenizer to tokenize input corpus. available: sentencepiece, '+', '.join(TOKENIZER_CLASSES.keys()))
     parser.add_argument('--pretrained_model',    default='',     type=str, help='句向量的预训练模型。pretrained sentencepiece model path. used only when tokenizer=\'sentencepiece\'')
     parser.add_argument('--output_model_prefix', default='model',          type=str, help='输出模型的前缀名')
+    parser.add_argument('--output_dir', default='../', type=str, help='输出模型的前缀名')
     # Input parameters
     parser.add_argument('--batch_size',     default=24,   type=int,   help='batch size')
     parser.add_argument('--max_seq_len',    default=512,  type=int,   help='the maximum size of the input sequence')
