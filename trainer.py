@@ -18,7 +18,7 @@ class Trainer(object):
 
         "优化器采用Adam,损失函数采用交叉熵"
         self.optimizer = optim.Adam(self.model.parameters(), args.lr)
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss(weight=torch.tensor([0.05,0.4,0.4,0.15,0.15]).to(device=0))
     def category_samples(self,category,labels_dim1):
         sample=(labels_dim1==category).sum().item()
         return sample
@@ -60,7 +60,9 @@ class Trainer(object):
                 losses += loss.item()
                 # TODO: implement acc calculate for all MU type
                 current_samples+=active_loss.sum().item()
-                acc = (active_logits.argmax(dim=-1) == active_labels).sum()
+                preds=active_logits.argmax(dim=-1)
+                print("0count",(preds==torch.tensor(0)).sum().item())
+                acc = (preds == active_labels).sum()
                 accs += acc.item()
                 """
                 for i in range(5):
@@ -120,8 +122,11 @@ class Trainer(object):
                     current_samples += active_loss.sum().item()
                     acc = (active_logits.argmax(dim=-1) == active_labels).sum()
                     accs += acc.item()
+                    preds=active_logits.argmax(dim=-1)
+                    print("preds",preds,preds.size())
+                    print("labels",active_labels, active_labels.size())
                     label_record+=(active_labels.cpu().numpy().tolist())
-                    pred_record+=(active_logits.argmax(dim=-1).cpu().numpy().tolist())
+                    pred_record+=(preds.cpu().numpy().tolist())
         assert len(label_record)==len(pred_record) and len(label_record)%self.args.max_seq_len==0
         write_TokenCLSoutput(self.args.output_dir,pred_record,label_record,epoch,self.args.output_model_prefix,self.args.max_seq_len)
         print('Valid Epoch: {}\t>\tLoss: {:.4f} / Acc: {:.1f}%'.format(epoch, losses / n_batches,
