@@ -18,7 +18,7 @@ class Trainer(object):
 
         "优化器采用Adam,损失函数采用交叉熵"
         self.optimizer = optim.Adam(self.model.parameters(), args.lr)
-        self.criterion = nn.CrossEntropyLoss(weight=torch.tensor([0.05,0.4,0.4,0.15,0.15]).to(device=0))
+        self.criterion = nn.CrossEntropyLoss(weight=torch.tensor([0.2,0.8]).to(device=0))
     def category_samples(self,category,labels_dim1):
         sample=(labels_dim1==category).sum().item()
         return sample
@@ -49,14 +49,14 @@ class Trainer(object):
                 if mask is not None:
                     active_loss = mask.view(-1) == False
                     #print(active_loss,active_loss.size())
-                    active_logits = outputs.view(-1, self.args.n_labels)
+                    active_logits = outputs.view(-1, int(self.args.n_labels))
                     active_labels = torch.where(
                         active_loss, labels.view(-1), torch.tensor(self.criterion.ignore_index).type_as(labels)
                     )
                     loss = self.criterion(active_logits, active_labels)
                     #print("loss",loss,loss.size())
                 else:
-                    loss = self.criterion(outputs.view(-1, self.args.n_labels), labels.view(-1))
+                    loss = self.criterion(outputs.view(-1, int(self.args.n_labels)), labels.view(-1))
                 losses += loss.item()
                 # TODO: implement acc calculate for all MU type
                 current_samples+=active_loss.sum().item()
@@ -110,21 +110,21 @@ class Trainer(object):
                 else:
                     if mask is not None:
                         active_loss = mask.view(-1) == False
-                        active_logits = outputs.view(-1, self.args.n_labels)
+                        active_logits = outputs.view(-1, int(self.args.n_labels))
                         active_labels = torch.where(
                             active_loss, labels.view(-1), torch.tensor(self.criterion.ignore_index).type_as(labels)
                         )
                         loss = self.criterion(active_logits, active_labels)
                     else:
-                        loss = self.criterion(outputs.view(-1, self.args.n_labels), labels.view(-1))
+                        loss = self.criterion(outputs.view(-1, int(self.args.n_labels)), labels.view(-1))
                     losses += loss.item()
                     # TODO: implement acc calculate for all MU type
                     current_samples += active_loss.sum().item()
                     acc = (active_logits.argmax(dim=-1) == active_labels).sum()
                     accs += acc.item()
                     preds=active_logits.argmax(dim=-1)
-                    print("preds",preds,preds.size())
-                    print("labels",active_labels, active_labels.size())
+                    #print("preds",preds,preds.size())
+                    #print("labels",active_labels, active_labels.size())
                     label_record+=(active_labels.cpu().numpy().tolist())
                     pred_record+=(preds.cpu().numpy().tolist())
         assert len(label_record)==len(pred_record) and len(label_record)%self.args.max_seq_len==0

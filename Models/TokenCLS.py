@@ -39,7 +39,7 @@ class TokenCLSModel(EncoderBase):
         self.layer_norm = nn.LayerNorm(d_model, eps=1e-6)
         # layers to classify
         self.n_labels=n_labels
-        self.classifier = nn.Linear(d_model, n_labels)
+        self.classifier = nn.Linear(d_model, int(n_labels))
         self.softmax=nn.Softmax(dim=-1)
 
 

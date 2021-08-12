@@ -24,8 +24,8 @@ def write_TokenCLSoutput(dir,preds,labels,epoch,model,max_seq_len):
     lens=int(len(labels)/max_seq_len)
     print(len(labels),len(labels)/max_seq_len)
     for i in range(lens):
-        one_pred=preds[i*max_seq_len:i*(max_seq_len+1)]
-        one_label=labels[i * max_seq_len:i * (max_seq_len + 1)]
+        one_pred=preds[i*max_seq_len:(i+1)*(max_seq_len)]
+        one_label=labels[i*max_seq_len:(i+1)*(max_seq_len)]
         ignore_len=one_label.count(-100)#-100是用于pad的无效标签
         pred_lines.append(str(one_pred[:-ignore_len]))
         label_lines.append(str(one_label[:-ignore_len]))

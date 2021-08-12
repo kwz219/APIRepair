@@ -18,4 +18,4 @@ def Acc_Beam(refs_f,preds_f,beam_size):
                     break
         hits+=hit
     print(str(round(hits*100/totalnum,2))+"%")
-Acc_Beam("D:\APIMU\Data\\raw_l5\\chunk9.af","D:\APIMU\Pred\\trainCP_dis_l5_step_94000_b20.pred",1)
+Acc_Beam("D:\浏览器下载\\fixed.txt","D:\浏览器下载\BFP_46000.pred",1)
