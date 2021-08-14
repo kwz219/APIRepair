@@ -51,6 +51,8 @@ if __name__ =="__main__":
     parser.add_argument('--pretrained_model',    default='',     type=str, help='句向量的预训练模型。pretrained sentencepiece model path. used only when tokenizer=\'sentencepiece\'')
     parser.add_argument('--output_model_prefix', default='model',          type=str, help='输出模型的前缀名')
     parser.add_argument('--output_dir', default='../', type=str, help='输出模型的前缀名')
+    parser.add_argument('--loss_function',default='cross_entropy',help='损失函数')
+    parser.add_argument('--ce_weight',default='[0.2,0.8]',help='crossentropy')
     # Input parameters
     parser.add_argument('--batch_size',     default=24,   type=int,   help='batch size')
     parser.add_argument('--max_seq_len',    default=512,  type=int,   help='the maximum size of the input sequence')

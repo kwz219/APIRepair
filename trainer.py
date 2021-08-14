@@ -4,6 +4,9 @@ import torch.nn as nn
 import torch.optim as optim
 from model_builder import build_Model
 from DataProcess.IOHelper import write_TokenCLSoutput
+from Models.Util.Loss import FocalLoss
+loss_function={"cross_entropy":nn.CrossEntropyLoss(weight=torch.tensor([0.3,1,1,1]).to(device=0)),
+"focal":FocalLoss(gamma=0.25, alpha=[1.0]*2)}
 class Trainer(object):
     def __init__(self, args, train_loader, test_loader, tokenizer):
         self.args = args
@@ -18,7 +21,7 @@ class Trainer(object):
 
         "优化器采用Adam,损失函数采用交叉熵"
         self.optimizer = optim.Adam(self.model.parameters(), args.lr)
-        self.criterion = nn.CrossEntropyLoss(weight=torch.tensor([0.2,0.8]).to(device=0))
+        self.criterion = nn.CrossEntropyLoss(weight=torch.tensor(eval(self.args.ce_weight)).cuda())
     def category_samples(self,category,labels_dim1):
         sample=(labels_dim1==category).sum().item()
         return sample
@@ -31,7 +34,7 @@ class Trainer(object):
 
         self.model.train()
         current_samples=0
-
+        count=0
         for i, batch in enumerate(self.train_loader):
 
             inputs, labels ,src_lengths= map(lambda x: x.to(self.device), batch)
@@ -61,7 +64,9 @@ class Trainer(object):
                 # TODO: implement acc calculate for all MU type
                 current_samples+=active_loss.sum().item()
                 preds=active_logits.argmax(dim=-1)
-                print("0count",(preds==torch.tensor(0)).sum().item())
+                if count%100==0:
+                    print("0count",(preds==torch.tensor(0)).sum().item())
+                count+=1
                 acc = (preds == active_labels).sum()
                 accs += acc.item()
                 """
@@ -74,7 +79,7 @@ class Trainer(object):
             loss.backward()
             self.optimizer.step()
 
-            if i % (10) == 0 and i != 0:
+            if i % (100) == 0 and i != 0:
                 print('Iteration {} ({}/{})\tLoss: {:.4f} Acc: {:4f}%'.format(
                     i, i, n_batches, losses / i, accs / (current_samples) * 100.))
             """

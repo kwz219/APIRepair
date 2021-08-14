@@ -81,7 +81,14 @@ def build_label(false_seq,true_seq):
                 labels[i1-1]=EDIT_TYPE["insert_after"]
     assert len(labels)==len(false_seq)
     return labels
-
+def merge_labels(old_f,new_f):
+    old_lines=read_lines(old_f)
+    new_lines=[]
+    for line in old_lines:
+            line=line.replace('4','1')
+            line=line.replace('2','1')
+            new_lines.append(line)
+    write_lines(new_f,new_lines)
 def count_labels(linefile):
     labels=read_lines(linefile)
     label_count={}
@@ -101,11 +108,16 @@ def count_labels(linefile):
 #build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\train\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\train\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\train")
 #build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\eval\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\eval\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\eval")
 #build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\test\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\test\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\test")
-
+"""
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50\train\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\train\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\MUCLS\train")
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50\eval\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\eval\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\MUCLS\eval")
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50\test\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\test\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\MUCLS\test")
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\train\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\train\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\train")
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\eval\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\eval\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\eval")
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\test\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\test\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\test")
-count_labels(r"D:\浏览器下载\BFP_datasets\datasets\50\MUCLS\train.2type.label")
+"""
+#build_errorLabels()
+merge_labels(r"D:\APIMU\MUCLS\test.label",r"D:\APIMU\MUCLS\test.2type.label")
+merge_labels(r"D:\APIMU\MUCLS\trn.label",r"D:\APIMU\MUCLS\trn.2type.label")
+merge_labels(r"D:\APIMU\MUCLS\val.label",r"D:\APIMU\MUCLS\val.2type.label")
+count_labels(r"D:\APIMU\MUCLS\trn.2type.label")
