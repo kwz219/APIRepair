@@ -1,6 +1,7 @@
 from DataProcess.IOHelper import read_lines
 from sklearn.metrics import classification_report
 #计算各个类别的hit_rate
+"""
 def category_eval(category,preds,labels):
     category_labels=[1 for i in range(len(category))]
     category_hits=[0 for i in range(len(category))]
@@ -21,6 +22,7 @@ def eval_category(preds_path,label_path):
     preds=[eval(i) for i in preds]
     labels=[eval(i) for i in labels]
     print(category_eval([0,1],preds,labels))
+"""
 def category_CLS_report(preds_f,labels_f,classes=['Correct','Misuse']):
     preds=read_lines(preds_f)
     labels=read_lines(labels_f)
@@ -32,4 +34,5 @@ def category_CLS_report(preds_f,labels_f,classes=['Correct','Misuse']):
 
     return classification_report(labels_all,preds_all,target_names=["class 0","class 1"])
 #print(eval_category("D:\BFPPreds\CLS2model_epoch20.pred","D:\BFPPreds\CLS2model_epoch20.label"))
-print(category_CLS_report("D:\BFPPreds\CLS2model_epoch50.pred","D:\BFPPreds\CLS2model_epoch50.label"))
+print(category_CLS_report("D:\MUCLS2Pred\AMUCLS2_ce_1_8_epoch7.pred","D:\MUCLS2Pred\AMUCLS2_ce_1_8_epoch7.label"))
+print(category_CLS_report("D:\BFPPreds\CLS2_ce_1_5model_epoch36.pred","D:\BFPPreds\CLS2_ce_1_5model_epoch36.label"))

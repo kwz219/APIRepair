@@ -30,12 +30,12 @@ def build_errorLabels(buggyfile,fixedfile,outputpre):
     for buggy,fixed in zip(buggy_lines,fixed_lines):
         buggyseq=buggy.strip().split()
         fixedseq=fixed.strip().split()
-        labellist.append(' '.join(build_label(buggyseq,fixedseq)))
+        labellist.append(' '.join(build_label_2(buggyseq,fixedseq)))
         seqlist.append(' '.join(buggyseq))
         print(ind)
         ind+=1
     print(len(seqlist),len(labellist))
-    write_lines(outputpre+".seq",seqlist)
+    #write_lines(outputpre+".seq",seqlist)
     write_lines(outputpre+".2type.label",labellist)
 
 #分成5类(实际上可能不需要)
@@ -60,7 +60,7 @@ def build_label(false_seq,true_seq):
     assert len(labels)==len(false_seq)
     return labels
 #只分成正确、错误两大类
-def build_label(false_seq,true_seq):
+def build_label_2(false_seq,true_seq):
     labels=[0 for i in range(len(false_seq))]
     s=difflib.SequenceMatcher(None,false_seq,true_seq)
     for tag,i1,i2,j1,j2 in s.get_opcodes():
@@ -81,14 +81,20 @@ def build_label(false_seq,true_seq):
                 labels[i1-1]=EDIT_TYPE["insert_after"]
     assert len(labels)==len(false_seq)
     return labels
-def merge_labels(old_f,new_f):
+def merge_labels(old_f,new_f,old_seq,new_seq):
+    seqs=read_lines(old_seq)
     old_lines=read_lines(old_f)
+    assert len(seqs)==len(old_lines)
     new_lines=[]
-    for line in old_lines:
-            line=line.replace('4','1')
-            line=line.replace('2','1')
-            new_lines.append(line)
+    new_seqs=[]
+    for seq,labels in zip(seqs,old_lines):
+            if len(labels.split())>2:
+                labels=labels.replace('4','1')
+                labels = labels.replace('2', '1')
+                new_lines.append(labels)
+                new_seqs.append(seq)
     write_lines(new_f,new_lines)
+    write_lines(new_seq,new_seqs)
 def count_labels(linefile):
     labels=read_lines(linefile)
     label_count={}
@@ -99,7 +105,8 @@ def count_labels(linefile):
                 label_count[l]+=1
             else:
                 label_count[l]=1
-    print(label_count)
+    return label_count
+
 
 
 #build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50\train\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\train\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50\MUCLS\train")
@@ -116,8 +123,17 @@ build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\train\buggy.
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\eval\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\eval\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\eval")
 build_errorLabels(r"D:\浏览器下载\BFP_datasets\datasets\50-100\test\buggy.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\test\fixed.txt",r"D:\浏览器下载\BFP_datasets\datasets\50-100\MUCLS\test")
 """
+build_errorLabels("D:\APIREP_pred\\chunk9.be","D:\APIREP_pred\\chunk9.af","D:\APIREP_pred\chunk9_true")
+build_errorLabels("D:\APIREP_pred\\chunk9.be","D:\APIREP_pred\\APIREP_transformer_36000.pred","D:\APIREP_pred\chunk9_pred")
 #build_errorLabels()
-merge_labels(r"D:\APIMU\MUCLS\test.label",r"D:\APIMU\MUCLS\test.2type.label")
-merge_labels(r"D:\APIMU\MUCLS\trn.label",r"D:\APIMU\MUCLS\trn.2type.label")
-merge_labels(r"D:\APIMU\MUCLS\val.label",r"D:\APIMU\MUCLS\val.2type.label")
-count_labels(r"D:\APIMU\MUCLS\trn.2type.label")
+#merge_labels("D:\APIREP_pred\\chunk9.af","D:\APIREP_pred\\APIREP_transformer_36000.pred")
+#merge_labels(r"D:\APIMU\MUCLS\trn.label",r"D:\浏览器下载\APIMUCLS_2\trn.label",r"D:\APIMU\MUCLS\trn.seq",r"D:\浏览器下载\APIMUCLS_2\trn.seq")
+#merge_labels(r"D:\APIMU\MUCLS\val.label",r"D:\浏览器下载\APIMUCLS_2\val.label",r"D:\APIMU\MUCLS\val.seq",r"D:\浏览器下载\APIMUCLS_2\val.seq")
+"""
+trn_dic=count_labels(r"D:\BFP_MUCLS2\50\train.2type.label")
+val_dic=count_labels(r"D:\BFP_MUCLS2\50\val.2type.label")
+test_dic=count_labels(r"D:\BFP_MUCLS2\50\test.2type.label")
+for key in trn_dic.keys():
+    trn_dic[key]=trn_dic[key]+val_dic[key]+test_dic[key]
+print(trn_dic)
+"""
